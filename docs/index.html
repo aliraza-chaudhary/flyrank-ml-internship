@@ -132,7 +132,7 @@
 <h2>Ranked Recommendations</h2>
 <p>Priority scoring combines commercial value (<code>search_volume &times; cpc</code>, percentile-ranked), predicted-growth deficit, and never-optimized status (weighted 50/30/20), computed per segment using each segment's own model.</p>
 <ol>
-<li><strong>Prioritize the Fresh &amp; Well-Linked segment first</strong> &mdash; the strongest signal-to-baseline ratio found (~3.2x lift), driven mainly by freshness of updates rather than backlink volume. Full ranked list: <code>ranked_action_list.csv</code>.</li>
+<li><strong>Prioritize the Fresh &amp; Well-Linked segment first</strong> &mdash; the strongest signal-to-baseline ratio found (~3.2x lift), driven mainly by freshness of updates rather than backlink volume. Full ranked list: <a href="https://github.com/aliraza-chaudhary/flyrank-ml-internship/blob/main/work/ranked_action_list.csv" target="_blank" rel="noopener"><code>ranked_action_list.csv</code></a>.</li>
 <li><strong>Treat High-Value Unoptimized as secondary priority</strong> &mdash; smaller segment (n=3,338) but solid lift (~2.4x) and the highest commercial value per item.</li>
 <li><strong>Use Actively Maintained and Long-form Neglected scores with more caution</strong> &mdash; weaker lift (~1.6x&ndash;1.9x) means these rankings are less reliable than the top two segments.</li>
 <li><strong>Investigate the optimization-timing confound directly</strong> as a follow-up &mdash; a matched-cohort design comparing optimized items to similar never-optimized items would help disentangle any independent optimization effect, especially in the segments where <code>ever_optimized</code> showed non-trivial importance.</li>
@@ -140,8 +140,8 @@
 
 <h2>Reproducibility</h2>
 <ul>
-<li>Capstone notebook and all weekly assignment notebooks: <code>work/</code> in the accompanying repository.</li>
-<li>Exported ranked action list: <code>ranked_action_list.csv</code>.</li>
+<li>Capstone notebook and all weekly assignment notebooks: <a href="https://github.com/aliraza-chaudhary/flyrank-ml-internship/tree/main/work" target="_blank" rel="noopener"><code>work/</code></a> in the accompanying repository.</li>
+<li>Exported ranked action list: <a href="https://github.com/aliraza-chaudhary/flyrank-ml-internship/blob/main/work/ranked_action_list.csv" target="_blank" rel="noopener"><code>ranked_action_list.csv</code></a>.</li>
 <li>Data: FlyRank ML Internship Warehouse Release, gated access via Hugging Face (<code>FlyRank/internship-warehouse</code>).</li>
 </ul>
 
