@@ -58,7 +58,7 @@
 
 <h2>Abstract</h2>
 <div class="abstract">
-<p>Which safe content and search signals are associated with click growth, and does that relationship differ across content types? This study joins content-level metadata (word count, competition, CPC, backlink presence, optimization history) with 90-day query-level performance from the FlyRank warehouse to test whether these signals predict short-term click movement. Content was first segmented into four data-driven clusters via k-means; linear regression on raw click deltas explained almost no variance (R&sup2; &lt; 1% in every segment), but reframing the question as binary classification — did an item grow or not — revealed real, differentiated signal, most notably in a high-value, historically unoptimized segment where a class-balanced random forest achieved roughly a 4x lift in precision-recall performance over baseline. The result is a segment-aware, reason-coded priority list ranking which content is both commercially valuable and predictably under-optimized, intended to guide review and optimization effort rather than to claim causal impact on rankings.</p>
+<p>Which safe content and search signals are associated with click growth, and does that relationship differ across content types? This study joins content-level metadata (word count, competition, CPC, backlink presence, optimization history) with 90-day query-level performance from the FlyRank warehouse to test whether these signals predict short-term click movement. Content was first segmented into four data-driven clusters via k-means; linear regression on raw click deltas explained almost no variance (R&sup2; &lt; 1.3% in every segment), but reframing the question as binary classification — did an item grow or not — revealed real, differentiated signal, most notably in a newer, well-linked segment where a class-balanced random forest achieved roughly a 3x lift in precision-recall performance over baseline. The result is a segment-aware, reason-coded priority list ranking which content is worth reviewing first, intended to guide review and optimization effort rather than to claim causal impact on rankings.</p>
 </div>
 
 <h2>Introduction / Problem Statement</h2>
@@ -84,46 +84,46 @@
 <p>K-means (k = 3&ndash;8) on standardized signal features. Silhouette scores were weak-to-moderate throughout (0.21&ndash;0.25), peaking at k = 6 but with a singleton outlier cluster at that k. <strong>k = 4 was selected</strong> for robustness:</p>
 <table>
 <tr><th>Segment</th><th>n</th><th>Character</th></tr>
-<tr><td>0 &mdash; Actively Maintained</td><td>38,660</td><td>Recently updated/optimized, moderate volume, decent backlinks</td></tr>
-<tr><td>1 &mdash; Long-form Neglected</td><td>4,922</td><td>Longest content, low search volume, stale, never optimized</td></tr>
-<tr><td>2 &mdash; High-Value Unoptimized</td><td>24,755</td><td>Highest search volume &amp; CPC, never optimized, backlinks untracked</td></tr>
-<tr><td>3 &mdash; Fresh &amp; Well-Linked</td><td>49,836</td><td>Newest content, highest backlink counts, never optimized</td></tr>
+<tr><td>Actively Maintained</td><td>37,100</td><td>Recently optimized, moderate volume, moderate value</td></tr>
+<tr><td>Long-form Neglected</td><td>52,107</td><td>Longest content, stale, never optimized</td></tr>
+<tr><td>Fresh &amp; Well-Linked</td><td>25,628</td><td>Newest content, most consistently optimized share, moderate value</td></tr>
+<tr><td>High-Value Unoptimized</td><td>3,338</td><td>Highest search volume &amp; CPC, rarely optimized, smallest segment</td></tr>
 </table>
 
 <h3>Modeling approach</h3>
-<p>Two approaches per segment: (1) OLS regression of <code>click_delta</code> on signals — tests magnitude prediction; (2) random forest classification of a binarized <code>grew</code> outcome (<code>click_delta &gt; 0</code>), evaluated with ROC-AUC and PR-AUC given class imbalance (grow-rates 3.9%&ndash;16.0% across segments). Class weighting was required — an unweighted model achieved high accuracy purely by predicting the majority class, with 0.00 precision/recall on "grew."</p>
+<p>Two approaches per segment: (1) OLS regression of <code>click_delta</code> on signals — tests magnitude prediction; (2) random forest classification of a binarized <code>grew</code> outcome (<code>click_delta &gt; 0</code>), evaluated with ROC-AUC and PR-AUC given class imbalance (grow-rates 4.1%&ndash;16.1% across segments). Class weighting was required — an unweighted model achieved high accuracy purely by predicting the majority class, with 0.00 precision/recall on "grew."</p>
 
 <h3>Validation design</h3>
 <p>The prev30 &rarr; last30 structure is itself a time-aware split: features are constructed from content-level and prior-window data, and the target reflects a strictly later window. Within each segment's classifier, a stratified 75/25 train/test split was used.</p>
 
 <h2>Results</h2>
-<p><strong>Regression results were uninformative on their own.</strong> R&sup2; ranged from 0.09% to 0.85% across segments &mdash; linear models could not explain meaningful variance in raw click-delta magnitude. This is reported directly: exact click movement is dominated by factors outside this signal set (seasonality, algorithm changes, competitive dynamics).</p>
+<p><strong>Regression results were uninformative on their own.</strong> R&sup2; ranged from 0.10% to 1.24% across segments &mdash; linear models could not explain meaningful variance in raw click-delta magnitude. This is reported directly: exact click movement is dominated by factors outside this signal set (seasonality, algorithm changes, competitive dynamics).</p>
 
 <p><strong>Classification revealed real, segment-specific signal:</strong></p>
 
 <img src="charts/pr_auc_vs_baseline.png" alt="Bar chart comparing baseline grow-rate to model PR-AUC across four segments">
-<p class="caption"><strong>Takeaway:</strong> In the High-Value Unoptimized segment, the model's precision-recall performance (0.166) is roughly 4.3x its own baseline grow-rate (3.9%) &mdash; the largest gap of any segment, and the only one strong enough to act on with confidence.</p>
+<p class="caption"><strong>Takeaway:</strong> In the Fresh &amp; Well-Linked segment, the model's precision-recall performance (0.131) is roughly 3.2x its own baseline grow-rate (4.1%) &mdash; the largest gap of any segment, and the strongest signal-to-baseline ratio found.</p>
 
 <table>
 <tr><th>Segment</th><th>Baseline grow-rate</th><th>ROC-AUC</th><th>PR-AUC</th><th>Lift vs. baseline</th></tr>
-<tr><td>0 &mdash; Actively Maintained</td><td>16.0%</td><td>0.600</td><td>0.230</td><td>~1.4x</td></tr>
-<tr><td>1 &mdash; Long-form Neglected</td><td>8.3%</td><td>0.536&ndash;0.570</td><td>0.104</td><td>~1.25x (weak &mdash; no reliable signal)</td></tr>
-<tr><td><strong>2 &mdash; High-Value Unoptimized</strong></td><td><strong>3.9%</strong></td><td><strong>0.727&ndash;0.734</strong></td><td><strong>0.166</strong></td><td><strong>~4.3x</strong></td></tr>
-<tr><td>3 &mdash; Fresh &amp; Well-Linked</td><td>8.7%</td><td>0.686</td><td>0.165</td><td>~1.9x</td></tr>
+<tr><td>Actively Maintained</td><td>16.1%</td><td>0.614</td><td>0.257</td><td>~1.6x</td></tr>
+<tr><td>Long-form Neglected</td><td>8.8%</td><td>0.661</td><td>0.163</td><td>~1.9x</td></tr>
+<tr><td><strong>Fresh &amp; Well-Linked</strong></td><td><strong>4.1%</strong></td><td><strong>0.723</strong></td><td><strong>0.131</strong></td><td><strong>~3.2x</strong></td></tr>
+<tr><td>High-Value Unoptimized</td><td>8.6%</td><td>0.700</td><td>0.207</td><td>~2.4x</td></tr>
 </table>
 
-<img src="charts/segment2_feature_importance.png" alt="Horizontal bar chart of feature importance for the Segment 2 growth classifier">
-<p class="caption"><strong>Takeaway:</strong> <code>word_count</code> and <code>days_since_optimized</code> together account for ~39% of this model's predictive weight (0.195 + 0.191 of ~1.0 total), while <code>backlinks</code> contributes nothing (0.000) &mdash; unsurprising, since backlinks are untracked for most of this segment.</p>
+<img src="charts/segment2_feature_importance.png" alt="Horizontal bar chart of feature importance for the Fresh and Well-Linked growth classifier">
+<p class="caption"><strong>Takeaway:</strong> <code>days_since_updated</code> and <code>days_since_optimized</code> together account for ~44% of this model's predictive weight (0.236 + 0.202 of ~1.0 total), while <code>backlinks</code> contributes almost nothing (0.005) &mdash; freshness of upkeep, not link authority, drives this segment's growth predictability.</p>
 
 <div class="callout">
-<strong>A notable inversion, addressed rather than glossed over:</strong> in OLS regression, <code>ever_optimized</code> was negatively associated with click growth in three of four segments, and <code>days_since_optimized</code> was positively associated with growth. Taken literally, this would suggest optimization harms performance &mdash; almost certainly reverse causality: content tends to get optimized <em>because</em> it was already declining. The classifier corroborates this: the binary <code>ever_optimized</code> flag carried near-zero feature importance (0.000&ndash;0.109) once other signals were included, suggesting the regression correlation was a confound rather than a usable signal.
+<strong>A notable inversion, addressed rather than glossed over:</strong> in OLS regression, <code>ever_optimized</code> was negatively associated with click growth in three of four segments, and <code>days_since_optimized</code> was positively associated with growth. Taken literally, this would suggest optimization harms performance &mdash; almost certainly reverse causality: content tends to get optimized <em>because</em> it was already declining. The classifier is more mixed here: <code>ever_optimized</code> carried near-zero importance in two segments but meaningful weight (0.065&ndash;0.137) in the other two, so this confound is likely present but not uniform across segments &mdash; treated as an open question rather than resolved.
 </div>
 
 <h2>Limitations &amp; Honest Framing</h2>
 <ul>
 <li>All reported relationships are <strong>observed associations, not causal effects.</strong> The optimization-related findings above are explicitly flagged as likely confounded by reverse causality.</li>
-<li>Segment 1 showed no reliable predictive signal (PR-AUC near its own baseline) and is excluded from confident recommendations.</li>
-<li>Even the strongest model (Segment 2) explains direction, not magnitude &mdash; it cannot say <em>how much</em> an item will grow.</li>
+<li>All four segments showed some lift over baseline this run &mdash; none were dropped for lack of signal &mdash; but lift ranged from ~1.6x to ~3.2x, and weaker segments (Actively Maintained, Long-form Neglected) should be treated with more caution than the strongest one.</li>
+<li>Even the strongest model (Fresh &amp; Well-Linked) explains direction, not magnitude &mdash; it cannot say <em>how much</em> an item will grow.</li>
 <li>Silhouette scores (0.21&ndash;0.25) indicate soft, overlapping segments, not sharply distinct categories.</li>
 <li><code>backlinks</code> and <code>word_count</code>/<code>char_count</code> had systematic, type-concentrated missingness; imputation choices are disclosed above.</li>
 <li>No client-identifying, query-text, or domain-level information is used or reported.</li>
@@ -132,10 +132,10 @@
 <h2>Ranked Recommendations</h2>
 <p>Priority scoring combines commercial value (<code>search_volume &times; cpc</code>, percentile-ranked), predicted-growth deficit, and never-optimized status (weighted 50/30/20), computed per segment using each segment's own model.</p>
 <ol>
-<li><strong>Prioritize Segment 2 (High-Value Unoptimized) first</strong> &mdash; the only segment with real underlying signal (4.3x lift) and simultaneously the highest commercial-value segment. Full ranked list: <code>ranked_action_list.csv</code>.</li>
-<li><strong>Treat Segment 3 (Fresh &amp; Well-Linked) as secondary priority</strong> &mdash; moderate signal (1.9x lift); <code>days_since_updated</code> was its dominant predictor.</li>
-<li><strong>Do not prioritize by score alone in Segment 1</strong> &mdash; flag its top items for manual review given the weak underlying model.</li>
-<li><strong>Investigate the optimization-timing confound directly</strong> as a follow-up &mdash; a matched-cohort design comparing optimized items to similar never-optimized items would help disentangle any independent optimization effect.</li>
+<li><strong>Prioritize the Fresh &amp; Well-Linked segment first</strong> &mdash; the strongest signal-to-baseline ratio found (~3.2x lift), driven mainly by freshness of updates rather than backlink volume. Full ranked list: <code>ranked_action_list.csv</code>.</li>
+<li><strong>Treat High-Value Unoptimized as secondary priority</strong> &mdash; smaller segment (n=3,338) but solid lift (~2.4x) and the highest commercial value per item.</li>
+<li><strong>Use Actively Maintained and Long-form Neglected scores with more caution</strong> &mdash; weaker lift (~1.6x&ndash;1.9x) means these rankings are less reliable than the top two segments.</li>
+<li><strong>Investigate the optimization-timing confound directly</strong> as a follow-up &mdash; a matched-cohort design comparing optimized items to similar never-optimized items would help disentangle any independent optimization effect, especially in the segments where <code>ever_optimized</code> showed non-trivial importance.</li>
 </ol>
 
 <h2>Reproducibility</h2>
